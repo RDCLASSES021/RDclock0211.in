@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Immersive Web Clock & Timer</title>
+    <!-- Google Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+
+    <style>
+        /* --- THEME DEFINITIONS --- */
+        :root {
+            --gradient-bg: linear-gradient(-45deg, #f7b733, #fc4a1a, #f7b733, #fc4a1a);
+            --text-color: #000000;
+            --panel-bg: rgba(255, 255, 255, 0.15);
+            --border-color: rgba(0, 0, 0, 0.25);
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --button-hover-bg: #000000;
+            --button-hover-icon: #f7b733;
+        }
+        body[data-theme="deep-space"] { --gradient-bg: linear-gradient(-45deg, #0f2027, #203a43, #2c5364); --text-color: #ffffff; --panel-bg: rgba(0, 0, 0, 0.2); --border-color: rgba(255, 255, 255, 0.25); --shadow-color: rgba(0, 0, 0, 0.2); --button-hover-bg: #ffffff; --button-hover-icon: #2c5364; }
+        body[data-theme="minty-fresh"] { --gradient-bg: linear-gradient(-45deg, #76b852, #8dc26f, #d4ecb5); --text-color: #000000; --panel-bg: rgba(255, 255, 255, 0.25); --border-color: rgba(0, 0, 0, 0.2); --shadow-color: rgba(0, 0, 0, 0.1); --button-hover-bg: #000000; --button-hover-icon: #76b852; }
+        body[data-theme="royal-purple"] { --gradient-bg: linear-gradient(-45deg, #8a2387, #e94057, #f27121); --text-color: #ffffff; --panel-bg: rgba(0, 0, 0, 0.15); --border-color: rgba(255, 255, 255, 0.25); --shadow-color: rgba(0, 0, 0, 0.2); --button-hover-bg: #ffffff; --button-hover-icon: #8a2387; }
+        body[data-theme="oceanic-blue"] { --gradient-bg: linear-gradient(-45deg, #00c6ff, #0072ff); --text-color: #000000; --panel-bg: rgba(255, 255, 255, 0.2); --border-color: rgba(0, 0, 0, 0.2); --shadow-color: rgba(0, 0, 0, 0.1); --button-hover-bg: #000000; --button-hover-icon: #00c6ff; }
+        body[data-theme="lush-forest"] { --gradient-bg: linear-gradient(-45deg, #134e5e, #71b280); --text-color: #ffffff; --panel-bg: rgba(0, 0, 0, 0.2); --border-color: rgba(255, 255, 255, 0.25); --shadow-color: rgba(0, 0, 0, 0.2); --button-hover-bg: #ffffff; --button-hover-icon: #134e5e; }
+        body[data-theme="hot-pink"] { --gradient-bg: linear-gradient(-45deg, #ff416c, #ff4b2b); --text-color: #000000; --panel-bg: rgba(255, 255, 255, 0.2); --border-color: rgba(0, 0, 0, 0.2); --shadow-color: rgba(0, 0, 0, 0.1); --button-hover-bg: #000000; --button-hover-icon: #ff416c; }
+        body[data-theme="graphite"] { --gradient-bg: linear-gradient(-45deg, #232526, #414345); --text-color: #ffffff; --panel-bg: rgba(0, 0, 0, 0.2); --border-color: rgba(255, 255, 255, 0.25); --shadow-color: rgba(0, 0, 0, 0.2); --button-hover-bg: #ffffff; --button-hover-icon: #414345; }
+        body[data-theme="sunrise"] { --gradient-bg: linear-gradient(-45deg, #ff5f6d, #ffc371); --text-color: #000000; --panel-bg: rgba(255, 255, 255, 0.2); --border-color: rgba(0, 0, 0, 0.2); --shadow-color: rgba(0, 0, 0, 0.1); --button-hover-bg: #000000; --button-hover-icon: #ff5f6d; }
+        body[data-theme="crimson-red"] { --gradient-bg: linear-gradient(-45deg, #642b73, #c6426e); --text-color: #ffffff; --panel-bg: rgba(0, 0, 0, 0.15); --border-color: rgba(255, 255, 255, 0.25); --shadow-color: rgba(0, 0, 0, 0.2); --button-hover-bg: #ffffff; --button-hover-icon: #c6426e; }
+
+        /* --- General Styling --- */
+        body { margin: 0; font-family: 'Poppins', sans-serif; height: 100vh; color: var(--text-color); background: var(--gradient-bg); background-size: 400% 400%; animation: gradientBG 15s ease infinite; overflow: hidden; transition: color 0.5s ease, background 0.5s ease; }
+        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        /* --- Main UI Elements --- */
+        .main-ui-wrapper { display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; height: 100%; }
+        .clock-container, .action-button { transition: opacity 0.4s ease, transform 0.4s ease; }
+        .clock-container { text-align: center; }
+        .clock-time { font-size: clamp(4rem, 15vw, 12rem); font-weight: 700; letter-spacing: 2px; }
+        .clock-day { font-size: clamp(1rem, 3vw, 2rem); font-weight: 300; margin-top: -10px; }
+        .action-button { position: fixed; padding: 12px; background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 50%; cursor: pointer; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 4px 20px var(--shadow-color); display: flex; align-items: center; justify-content: center; color: var(--text-color); z-index: 10; }
+        .action-button:hover { transform: translateY(-5px) scale(1.1); box-shadow: 0 8px 30px var(--shadow-color); }
+        #openTimerBtn { bottom: 30px; left: 30px; }
+        #openSettingsBtn { top: 30px; right: 30px; }
+        #fullscreenBtn { top: 30px; right: 90px; }
+        .greeting-message { font-size: clamp(0.8rem, 2vw, 1.2rem); font-weight: 400; margin-top: 10px; opacity: 0.8; letter-spacing: 1px; text-transform: uppercase; transition: opacity 0.4s ease, transform 0.4s ease; }
+        body.timer-is-open .clock-container, body.timer-is-open .action-button,
+        body.is-fullscreen .action-button { opacity: 0; pointer-events: none; transform: scale(0.9); }
+        body.greeting-hidden .greeting-message { opacity: 0; transform: translateY(-10px); pointer-events: none; }
+
+        /* --- SMILEY STYLES --- */
+        .smiley-container { position: fixed; left: var(--smiley-left-position, 5vw); top: var(--smiley-top-position, 50%); transform: translateY(-50%) scale(1); transform-origin: center; transition: transform 0.2s ease, left 0.2s ease, top 0.2s ease; z-index: 5; }
+        .smiley-face { width: 80px; height: 80px; position: relative; }
+        .eye { width: 18px; height: 24px; background: none; border: 2px solid var(--text-color); border-radius: 50%; position: absolute; top: 20px; }
+        .eye.left { left: 15px; }
+        .eye.right { right: 15px; }
+        .pupil { width: 8px; height: 12px; background: var(--text-color); border-radius: 50%; position: absolute; top: 6px; left: 5px; transition: transform 0.1s ease-out; }
+        .mouth { width: 40px; height: 25px; border: 3px solid var(--text-color); border-color: transparent transparent var(--text-color) transparent; border-radius: 0 0 60px 60px / 0 0 40px 40px; position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); box-sizing: border-box; }
+
+        /* --- Panel Styling --- */
+        .panel { position: fixed; opacity: 0; pointer-events: none; z-index: 100; }
+        .close-panel-btn { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 2.5rem; cursor: pointer; color: var(--text-color); opacity: 0.7; transition: opacity 0.2s, transform 0.2s; }
+        .close-panel-btn:hover { opacity: 1; transform: rotate(90deg); }
+        .panel h2 { margin-top: 0; margin-bottom: 25px; font-weight: 400; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.2); backdrop-filter: blur(5px); opacity: 0; pointer-events: none; transition: opacity 0.4s ease; z-index: 99; }
+        .overlay.show { opacity: 1; pointer-events: all; }
+        
+        /* UPDATED: Settings Panel slides from the right on desktop */
+        #settingsPanel {
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%) translateX(100%);
+            border-radius: 25px 0 0 25px;
+            transition: transform 0.4s ease-out, opacity 0.4s ease-out;
+            width: 450px;
+            min-width: 320px;
+            max-width: 80vw;
+            padding: 20px 40px 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            resize: horizontal;
+            overflow: auto;
+            direction: rtl; /* Puts resize handle on the left */
+        }
+        #settingsPanel.show {
+            transform: translateY(-50%) translateX(0);
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .panel-content { direction: ltr; text-align: left; }
+        .theme-options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; }
+        .theme-swatch { cursor: pointer; padding: 10px; border-radius: 10px; border: 2px solid transparent; transition: border-color 0.2s, transform 0.2s; }
+        .theme-swatch:hover { transform: scale(1.05); }
+        .theme-swatch.active { border-color: var(--text-color); }
+        .theme-swatch .swatch-preview { height: 40px; border-radius: 5px; margin-bottom: 8px; }
+        hr { border: none; height: 1px; background-color: var(--border-color); margin: 30px 0; }
+        .setting-option { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+        .setting-option span, .setting-label-group span { flex-grow: 1; }
+        .setting-option.inline { flex-wrap: nowrap; }
+        .setting-option.inline span { width: auto; margin-bottom: 0; }
+        input[type="range"] { width: 100%; cursor: pointer; }
+        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border-color); transition: .4s; border-radius: 28px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--text-color); }
+        input:checked + .slider:before { transform: translateX(22px); }
+        .setting-label-group { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 10px; }
+        .adjust-buttons { display: flex; gap: 8px; }
+        .adjust-btn { background: none; border: 1px solid var(--border-color); color: var(--text-color); border-radius: 50%; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s; }
+        .adjust-btn:hover { background-color: var(--border-color); }
+        .adjust-btn .material-symbols-outlined { font-size: 1.2rem; }
+
+        /* Responsive: On mobile, panel slides up from bottom */
+        @media (max-width: 768px) {
+            #settingsPanel {
+                left: 0;
+                bottom: 0;
+                top: auto;
+                right: auto;
+                width: 100%;
+                min-width: unset;
+                max-width: none;
+                transform: translateY(100%);
+                border-radius: 25px 25px 0 0;
+                resize: none;
+                direction: ltr;
+            }
+            #settingsPanel.show {
+                transform: translateY(0);
+            }
+        }
+
+    </style>
+</head>
+<body data-theme="sunset-orange">
+    
+    <div class="smiley-container">
+        <div class="smiley-face">
+            <div class="eye left"><div class="pupil"></div></div>
+            <div class="eye right"><div class="pupil"></div></div>
+            <div class="mouth"></div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+
+    <div class="main-ui-wrapper">
+        <div class="clock-container">
+            <div id="clock-time" class="clock-time">00:00:00</div>
+            <div id="clock-day" class="clock-day">Loading date...</div>
+            <div id="greetingMessage" class="greeting-message">HOW ARE YOU SANJAY</div>
+        </div>
+    </div>
+
+    <button id="openTimerBtn" class="action-button" title="Set a Timer"><span class="material-symbols-outlined">timer</span></button>
+    <button id="fullscreenBtn" class="action-button" title="Toggle Fullscreen"><span class="material-symbols-outlined">fullscreen</span></button>
+    <button id="openSettingsBtn" class="action-button" title="Settings"><span class="material-symbols-outlined">settings</span></button>
+    
+    <!-- Settings Panel -->
+    <div class="panel" id="settingsPanel">
+        <div class="panel-content">
+            <button id="closeSettingsBtn" class="close-panel-btn material-symbols-outlined">close</button>
+            <h2>Themes</h2>
+            <div class="theme-options-grid" id="themeGrid"></div>
+            <hr>
+            <h2>Display</h2>
+            <div class="setting-option inline">
+                <span>Show Greeting</span>
+                <label class="switch"> <input type="checkbox" id="greetingToggle"> <span class="slider"></span> </label>
+            </div>
+            
+            <hr>
+            <h2>Smiley</h2>
+            <div class="setting-option">
+                <span class="setting-label-group"><span>Size</span></span>
+                <input type="range" id="smileySizeSlider" min="0.5" max="5.0" step="0.1" value="1">
+            </div>
+            <div class="setting-option">
+                <span class="setting-label-group"><span>Position (Left/Right)</span></span>
+                <input type="range" id="smileyPositionSlider" min="2" max="98" step="1" value="5">
+            </div>
+            <div class="setting-option">
+                <div class="setting-label-group">
+                    <span>Position (Up/Down)</span>
+                    <div class="adjust-buttons">
+                        <button id="smileyUpBtn" class="adjust-btn" title="Move Up"><span class="material-symbols-outlined">arrow_upward</span></button>
+                        <button id="smileyDownBtn" class="adjust-btn" title="Move Down"><span class="material-symbols-outlined">arrow_downward</span></button>
+                    </div>
+                </div>
+                <input type="range" id="smileyVerticalPositionSlider" min="0" max="100" step="1" value="50">
+            </div>
+        </div>
+    </div>
+    
+    <audio id="audioPlayer"></audio>
+
+    <script>
+        // --- NO CHANGES TO JAVASCRIPT ---
+        const themes = [ { name: "Sunset Orange", id: "sunset-orange", gradient: "linear-gradient(-45deg, #f7b733, #fc4a1a)" }, { name: "Deep Space", id: "deep-space", gradient: "linear-gradient(-45deg, #0f2027, #2c5364)" }, { name: "Minty Fresh", id: "minty-fresh", gradient: "linear-gradient(-45deg, #76b852, #d4ecb5)" }, { name: "Royal Purple", id: "royal-purple", gradient: "linear-gradient(-45deg, #8a2387, #e94057, #f27121)" }, { name: "Oceanic Blue", id: "oceanic-blue", gradient: "linear-gradient(-45deg, #00c6ff, #0072ff)" }, { name: "Lush Forest", id: "lush-forest", gradient: "linear-gradient(-45deg, #134e5e, #71b280)" }, { name: "Hot Pink", id: "hot-pink", gradient: "linear-gradient(-45deg, #ff416c, #ff4b2b)" }, { name: "Graphite", id: "graphite", gradient: "linear-gradient(-45deg, #232526, #414345)" }, { name: "Sunrise", id: "sunrise", gradient: "linear-gradient(-45deg, #ff5f6d, #ffc371)" }, { name: "Crimson Red", id: "crimson-red", gradient: "linear-gradient(-45deg, #642b73, #c6426e)" } ];
+        const timeElement = document.getElementById('clock-time'), dayElement = document.getElementById('clock-day');
+        const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        function formatTime(num) { return num < 10 ? '0' + num : num; }
+        function updateClock() { const now = new Date(); timeElement.textContent = `${formatTime(now.getHours())}:${formatTime(now.getMinutes())}:${formatTime(now.getSeconds())}`; dayElement.textContent = `${daysOfWeek[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`; }
+        setInterval(updateClock, 1000); updateClock();
+        const overlay = document.getElementById('overlay');
+        const panels = { settings: { btn: document.getElementById('openSettingsBtn'), panel: document.getElementById('settingsPanel'), closeBtn: document.getElementById('closeSettingsBtn') } };
+        function showPanel(panelName) { panels[panelName].panel.classList.add('show'); overlay.classList.add('show'); }
+        function hideAllPanels() { Object.values(panels).forEach(p => p.panel.classList.remove('show')); overlay.classList.remove('show'); }
+        Object.keys(panels).forEach(name => { panels[name].btn.addEventListener('click', () => showPanel(name)); panels[name].closeBtn.addEventListener('click', hideAllPanels); });
+        overlay.addEventListener('click', hideAllPanels);
+        const themeGrid = document.getElementById('themeGrid');
+        function applyTheme(themeId) { document.body.dataset.theme = themeId; localStorage.setItem('clockTheme', themeId); document.querySelectorAll('.theme-swatch').forEach(swatch => swatch.classList.toggle('active', swatch.dataset.theme === themeId)); }
+        themes.forEach(theme => { const swatch = document.createElement('div'); swatch.className = 'theme-swatch'; swatch.dataset.theme = theme.id; swatch.innerHTML = `<div class="swatch-preview" style="background: ${theme.gradient};"></div><span>${theme.name}</span>`; swatch.addEventListener('click', () => applyTheme(theme.id)); themeGrid.appendChild(swatch); });
+        applyTheme(localStorage.getItem('clockTheme') || 'sunset-orange');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        function toggleFullscreen() { if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(err => console.error(err)); } else { if (document.exitFullscreen) document.exitFullscreen(); } }
+        function updateFullscreenButton() { document.body.classList.toggle('is-fullscreen', !!document.fullscreenElement); }
+        fullscreenBtn.addEventListener('click', toggleFullscreen); document.addEventListener('fullscreenchange', updateFullscreenButton);
+        const greetingToggle = document.getElementById('greetingToggle');
+        const GREETING_STORAGE_KEY = 'clockGreetingVisible';
+        function applyGreetingVisibility(isVisible) { document.body.classList.toggle('greeting-hidden', !isVisible); }
+        function loadGreetingSetting() { const savedState = localStorage.getItem(GREETING_STORAGE_KEY); const shouldBeVisible = savedState === null ? true : savedState === 'true'; greetingToggle.checked = shouldBeVisible; applyGreetingVisibility(shouldBeVisible); }
+        greetingToggle.addEventListener('change', () => { const isVisible = greetingToggle.checked; applyGreetingVisibility(isVisible); localStorage.setItem(GREETING_STORAGE_KEY, isVisible); });
+        loadGreetingSetting();
+
+        // --- Human-like Eye Movement ---
+        const pupils = document.querySelectorAll('.pupil');
+        function movePupils() {
+            const x = (Math.random() * 4) - 2; const y = (Math.random() * 6) - 3;
+            pupils.forEach(pupil => { pupil.style.transform = `translate(${x}px, ${y}px)`; });
+            const randomDelay = Math.random() * 2000 + 1000;
+            setTimeout(movePupils, randomDelay);
+        }
+        movePupils();
+
+        // --- Smiley Controls Logic ---
+        const smileyContainer = document.querySelector('.smiley-container');
+        
+        // Size Control
+        const smileySizeSlider = document.getElementById('smileySizeSlider');
+        const SMILEY_SIZE_KEY = 'clockSmileySize';
+        function applySmileySize(size) { smileyContainer.style.transform = `translateY(-50%) scale(${size})`; }
+        function loadSmileySize() {
+            const savedSize = localStorage.getItem(SMILEY_SIZE_KEY) || 1;
+            smileySizeSlider.value = savedSize;
+            applySmileySize(savedSize);
+        }
+        smileySizeSlider.addEventListener('input', () => {
+            const newSize = smileySizeSlider.value;
+            applySmileySize(newSize);
+            localStorage.setItem(SMILEY_SIZE_KEY, newSize);
+        });
+
+        // Horizontal Position Control
+        const smileyPositionSlider = document.getElementById('smileyPositionSlider');
+        const SMILEY_POSITION_KEY = 'clockSmileyPosition';
+        function applySmileyPosition(position) { smileyContainer.style.setProperty('--smiley-left-position', `${position}vw`); }
+        function loadSmileyPosition() {
+            const savedPosition = localStorage.getItem(SMILEY_POSITION_KEY) || 5;
+            smileyPositionSlider.value = savedPosition;
+            applySmileyPosition(savedPosition);
+        }
+        smileyPositionSlider.addEventListener('input', () => {
+            const newPosition = smileyPositionSlider.value;
+            applySmileyPosition(newPosition);
+            localStorage.setItem(SMILEY_POSITION_KEY, newPosition);
+        });
+
+        // Vertical Position Control
+        const smileyVerticalPositionSlider = document.getElementById('smileyVerticalPositionSlider');
+        const smileyUpBtn = document.getElementById('smileyUpBtn');
+        const smileyDownBtn = document.getElementById('smileyDownBtn');
+        const SMILEY_VERTICAL_POSITION_KEY = 'clockSmileyVerticalPosition';
+        
+        function applySmileyVerticalPosition(position) { smileyContainer.style.setProperty('--smiley-top-position', `${position}%`); }
+        
+        function loadSmileyVerticalPosition() {
+            const savedPosition = localStorage.getItem(SMILEY_VERTICAL_POSITION_KEY) || 50;
+            smileyVerticalPositionSlider.value = savedPosition;
+            applySmileyVerticalPosition(savedPosition);
+        }
+        
+        function adjustVerticalPosition(amount) {
+            let currentValue = parseFloat(smileyVerticalPositionSlider.value);
+            let newValue = currentValue + amount;
+            if (newValue < 0) newValue = 0;
+            if (newValue > 100) newValue = 100;
+            
+            smileyVerticalPositionSlider.value = newValue;
+            applySmileyVerticalPosition(newValue);
+            localStorage.setItem(SMILEY_VERTICAL_POSITION_KEY, newValue);
+        }
+        
+        smileyVerticalPositionSlider.addEventListener('input', () => {
+            const newPosition = smileyVerticalPositionSlider.value;
+            applySmileyVerticalPosition(newPosition);
+            localStorage.setItem(SMILEY_VERTICAL_POSITION_KEY, newPosition);
+        });
+
+        smileyUpBtn.addEventListener('click', () => adjustVerticalPosition(-1));
+        smileyDownBtn.addEventListener('click', () => adjustVerticalPosition(1));
+
+        // Load all smiley settings on start
+        loadSmileySize();
+        loadSmileyPosition();
+        loadSmileyVerticalPosition();
+
+    </script>
+</body>
+</html>
